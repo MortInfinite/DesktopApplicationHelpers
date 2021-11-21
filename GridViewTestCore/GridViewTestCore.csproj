@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>GridViewTest</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\GridViewTestFramework\App.xaml.cs" Link="App.xaml.cs" />
+    <Compile Include="..\GridViewTestFramework\ConcurrentObservableCollectionWindow.xaml.cs" Link="ConcurrentObservableCollectionWindow.xaml.cs" />
+    <Compile Include="..\GridViewTestFramework\DualListWindow.xaml.cs" Link="DualListWindow.xaml.cs" />
+    <Compile Include="..\GridViewTestFramework\FilteredListWindow.xaml.cs" Link="FilteredListWindow.xaml.cs" />
+    <Compile Include="..\GridViewTestFramework\MvvmViewModel.cs" Link="MvvmViewModel.cs" />
+    <Compile Include="..\GridViewTestFramework\MvvmWindow.xaml.cs" Link="MvvmWindow.xaml.cs" />
+    <Compile Include="..\GridViewTestFramework\MyDataType.cs" Link="MyDataType.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ApplicationDefinition Include="..\GridViewTestFramework\App.xaml" Link="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </ApplicationDefinition>
+    <Page Include="..\GridViewTestFramework\ConcurrentObservableCollectionWindow.xaml" Link="ConcurrentObservableCollectionWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\GridViewTestFramework\DualListWindow.xaml" Link="DualListWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\GridViewTestFramework\FilteredListWindow.xaml" Link="FilteredListWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\GridViewTestFramework\MvvmWindow.xaml" Link="MvvmWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BindingsCore\BindingsCore.csproj" />
+    <ProjectReference Include="..\Collections\Collections.csproj" />
+    <ProjectReference Include="..\WpfHelpersCore\WpfHelpersCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="InvokeValueMarkupWindow.xaml.cs">
+      <DependentUpon>InvokeValueMarkupWindow.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="InvokeValueMarkupWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+
+</Project>

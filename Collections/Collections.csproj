@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\CollectionsFramework\CollectionPropertyChangedListener.cs" Link="CollectionPropertyChangedListener.cs" />
+    <Compile Include="..\CollectionsFramework\ConcurrentObservableCollection.cs" Link="ConcurrentObservableCollection.cs" />
+    <Compile Include="..\CollectionsFramework\ConcurrentObservableFilteredList.cs" Link="ConcurrentObservableFilteredList.cs" />
+    <Compile Include="..\CollectionsFramework\ConcurrentObservableList.cs" Link="ConcurrentObservableList.cs" />
+    <Compile Include="..\CollectionsFramework\ConcurrentObservableListNotifier.cs" Link="ConcurrentObservableListNotifier.cs" />
+    <Compile Include="..\CollectionsFramework\ConcurrentObservableReadOnlyList.cs" Link="ConcurrentObservableReadOnlyList.cs" />
+    <Compile Include="..\CollectionsFramework\ConcurrentObservableSortedList.cs" Link="ConcurrentObservableSortedList.cs" />
+    <Compile Include="..\CollectionsFramework\DictionaryExtensions.cs" Link="DictionaryExtensions.cs" />
+    <Compile Include="..\CollectionsFramework\DualCollection.cs" Link="DualCollection.cs" />
+    <Compile Include="..\CollectionsFramework\DualCollectionT.cs" Link="DualCollectionT.cs" />
+    <Compile Include="..\CollectionsFramework\DualEnumerator.cs" Link="DualEnumerator.cs" />
+    <Compile Include="..\CollectionsFramework\DualEnumeratorT.cs" Link="DualEnumeratorT.cs" />
+    <Compile Include="..\CollectionsFramework\DualItem.cs" Link="DualItem.cs" />
+    <Compile Include="..\CollectionsFramework\DualItemEnumeratorT.cs" Link="DualItemEnumeratorT.cs" />
+    <Compile Include="..\CollectionsFramework\DualListT.cs" Link="DualListT.cs" />
+    <Compile Include="..\CollectionsFramework\INotifyCollectionPropertyChanged.cs" Link="INotifyCollectionPropertyChanged.cs" />
+    <Compile Include="..\CollectionsFramework\ListExtensions.cs" Link="ListExtensions.cs" />
+    <Compile Include="..\CollectionsFramework\Search.cs" Link="Search.cs" />
+  </ItemGroup>
+
+</Project>

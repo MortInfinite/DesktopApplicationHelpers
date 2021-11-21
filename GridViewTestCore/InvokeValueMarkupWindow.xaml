@@ -1,0 +1,29 @@
+﻿<Window x:Class="GridViewTest.InvokeValueMarkupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:wpfHelpers="clr-namespace:WpfHelpers;assembly=WpfHelpersCore"
+        mc:Ignorable="d"
+        Title="Invoke Value Markup" Height="350" Width="525"
+		DataContext="{Binding RelativeSource={RelativeSource Self}}">
+	
+	<Grid>
+		<ListView ItemsSource="{Binding MyData}">
+			<ListView.View>
+				<GridView>
+					<GridViewColumn x:Name="FirstColumn" Header="First" DisplayMemberBinding="{Binding First}" />
+					<GridViewColumn x:Name="SecondColumn" Header="Second" DisplayMemberBinding="{Binding Second}" />
+					<GridViewColumn x:Name="ThirdColumn" Header="Third" DisplayMemberBinding="{Binding Third}" />
+					<GridViewColumn x:Name="FourthColumn" Header="Fourth">
+						<GridViewColumn.CellTemplate>
+							<DataTemplate>
+								<CheckBox IsChecked="{wpfHelpers:InvokeValueMarkup GetMethod=GetIsChecked, SetMethod=SetIsChecked}"/>
+							</DataTemplate>
+						</GridViewColumn.CellTemplate>
+					</GridViewColumn>
+				</GridView>
+			</ListView.View>
+		</ListView>
+    </Grid>
+</Window>

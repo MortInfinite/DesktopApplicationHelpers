@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+	  <UseWPF>true</UseWPF>
+
+	  <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="BindingModes.cs" />
+    <Compile Remove="HierarchicalBinding.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\BindingUnitTestFramework\HierarchicalBindingDependencyUnitTest.cs" Link="HierarchicalBindingDependencyUnitTest.cs" />
+    <Compile Include="..\BindingUnitTestFramework\HierarchicalBindingUnitTest.cs" Link="HierarchicalBindingUnitTest.cs" />
+    <Compile Include="..\BindingUnitTestFramework\TestData\FirstClass.cs" Link="TestData\FirstClass.cs" />
+    <Compile Include="..\BindingUnitTestFramework\TestData\FirstDependencyClass.cs" Link="TestData\FirstDependencyClass.cs" />
+    <Compile Include="..\BindingUnitTestFramework\TestData\SecondClass.cs" Link="TestData\SecondClass.cs" />
+    <Compile Include="..\BindingUnitTestFramework\TestData\SecondDependencyClass.cs" Link="TestData\SecondDependencyClass.cs" />
+    <Compile Include="..\BindingUnitTestFramework\TestData\TestDependencyObject.cs" Link="TestData\TestDependencyObject.cs" />
+    <Compile Include="..\BindingUnitTestFramework\TestData\TestObject.cs" Link="TestData\TestObject.cs" />
+    <Compile Include="..\BindingUnitTestFramework\TestData\ThirdClass.cs" Link="TestData\ThirdClass.cs" />
+    <Compile Include="..\BindingUnitTestFramework\TestData\ThirdDependencyClass.cs" Link="TestData\ThirdDependencyClass.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BindingsFramework\BindingsFramework.csproj" />
+    <ProjectReference Include="..\WpfHelpersFramework\WpfHelpersFramework.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="TestData\" />
+  </ItemGroup>
+
+</Project>

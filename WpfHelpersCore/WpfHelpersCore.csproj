@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+	<PropertyGroup>
+		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<UseWPF>true</UseWPF>
+		<RootNamespace>WpfHelpers</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Include="..\WpfHelpersFramework\AsyncCommandHandler.cs" Link="AsyncCommandHandler.cs" />
+		<Compile Include="..\WpfHelpersFramework\BindingSource.cs" Link="BindingSource.cs" />
+		<Compile Include="..\WpfHelpersFramework\CommandHandler.cs" Link="CommandHandler.cs" />
+		<Compile Include="..\WpfHelpersFramework\DispatcherHelper.cs" Link="DispatcherHelper.cs" />
+		<Compile Include="..\WpfHelpersFramework\Extensions\DependencyObjectExtensions.cs" Link="Extensions\DependencyObjectExtensions.cs" />
+		<Compile Include="..\WpfHelpersFramework\Extensions\FrameworkElementExtensions.cs" Link="Extensions\FrameworkElementExtensions.cs" />
+		<Compile Include="..\WpfHelpersFramework\Extensions\NotifyPropertyChangedExtensions.cs" Link="Extensions\NotifyPropertyChangedExtensions.cs" />
+		<Compile Include="..\WpfHelpersFramework\Extensions\SynchronizationContextExtensions.cs" Link="Extensions\SynchronizationContextExtensions.cs" />
+		<Compile Include="..\WpfHelpersFramework\Interfaces\IAsyncCommand.cs" Link="Interfaces\IAsyncCommand.cs" />
+		<Compile Include="..\WpfHelpersFramework\Interfaces\ICommandHandler.cs" Link="Interfaces\ICommandHandler.cs" />
+		<Compile Include="..\WpfHelpersFramework\InvokeValueMarkup.cs" Link="InvokeValueMarkup.cs" />
+		<Compile Include="..\WpfHelpersFramework\ValueConverters\AddMultiValueConverter.cs" Link="ValueConverters\AddMultiValueConverter.cs" />
+		<Compile Include="..\WpfHelpersFramework\ValueConverters\BoolAndConverter.cs" Link="ValueConverters\BoolAndConverter.cs" />
+		<Compile Include="..\WpfHelpersFramework\ValueConverters\BoolInvertConverter.cs" Link="ValueConverters\BoolInvertConverter.cs" />
+		<Compile Include="..\WpfHelpersFramework\ValueConverters\BoolOrConverter.cs" Link="ValueConverters\BoolOrConverter.cs" />
+		<Compile Include="..\WpfHelpersFramework\ValueConverters\BoolToVisibilityConverter.cs" Link="ValueConverters\BoolToVisibilityConverter.cs" />
+		<Compile Include="..\WpfHelpersFramework\ValueConverters\ColorToBrushConverter.cs" Link="ValueConverters\ColorToBrushConverter.cs" />
+		<Compile Include="..\WpfHelpersFramework\ValueConverters\ColorToRGBTextConverter.cs" Link="ValueConverters\ColorToRGBTextConverter.cs" />
+		<Compile Include="..\WpfHelpersFramework\ValueConverters\IsNullConverter.cs" Link="ValueConverters\IsNullConverter.cs" />
+		<Compile Include="..\WpfHelpersFramework\ValueConverters\MultiplierConverter.cs" Link="ValueConverters\MultiplierConverter.cs" />
+		<Compile Include="..\WpfHelpersFramework\ValueConverters\MultiValueConverterGroup.cs" Link="ValueConverters\MultiValueConverterGroup.cs" />
+		<Compile Include="..\WpfHelpersFramework\ValueConverters\NanProtectorConverter.cs" Link="ValueConverters\NanProtectorConverter.cs" />
+		<Compile Include="..\WpfHelpersFramework\ValueConverters\NullableBoolToBoolConverter.cs" Link="ValueConverters\NullableBoolToBoolConverter.cs" />
+		<Compile Include="..\WpfHelpersFramework\ValueConverters\TransformXConverter.cs" Link="ValueConverters\TransformXConverter.cs" />
+		<Compile Include="..\WpfHelpersFramework\ValueConverters\TransformYConverter.cs" Link="ValueConverters\TransformYConverter.cs" />
+		<Compile Include="..\WpfHelpersFramework\ValueConverters\ValueConverterGroup.cs" Link="ValueConverters\ValueConverterGroup.cs" />
+		<Compile Include="..\WpfHelpersFramework\ValueConverters\VisibleForegroundTextConverter.cs" Link="ValueConverters\VisibleForegroundTextConverter.cs" />
+		<Compile Include="..\WpfHelpersFramework\WindowPositionHelper.cs" Link="WindowPositionHelper.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Extensions\" />
+		<Folder Include="Interfaces\" />
+		<Folder Include="ValueConverters\" />
+	</ItemGroup>
+</Project>

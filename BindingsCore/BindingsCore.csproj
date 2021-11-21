@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Bindings</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\BindingsFramework\Binding.cs" Link="Binding.cs" />
+    <Compile Include="..\BindingsFramework\BindingManager.cs" Link="BindingManager.cs" />
+    <Compile Include="..\BindingsFramework\BindingModes.cs" Link="BindingModes.cs" />
+    <Compile Include="..\BindingsFramework\HierarchicalBinding.cs" Link="HierarchicalBinding.cs" />
+  </ItemGroup>
+
+</Project>
