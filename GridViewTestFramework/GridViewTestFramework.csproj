@@ -55,6 +55,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="ConcurrentObservableListWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="FilteredListWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -70,6 +74,9 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ConcurrentObservableListWindow.xaml.cs">
+      <DependentUpon>ConcurrentObservableListWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="FilteredListWindow.xaml.cs">
       <DependentUpon>FilteredListWindow.xaml</DependentUpon>

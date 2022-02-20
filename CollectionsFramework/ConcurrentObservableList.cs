@@ -46,9 +46,17 @@ namespace Collections
 		/// </returns>
 		public virtual int IndexOf(T item)
 		{
-			lock(ListLockObject)
+			try
 			{
+				// Prevent other threads from writing, while reading the list.
+				LockSlim.EnterReadLock();
+
 				return List.IndexOf(item);
+			}
+			finally
+			{ 
+				// Allow other threads to write.
+				LockSlim.ExitReadLock();
 			}
 		}
 
@@ -60,12 +68,31 @@ namespace Collections
 		/// <exception cref="ArgumentOutOfRangeException">Index is less than 0.-or-index is greater than Count.</exception>
 		public virtual void Insert(int index, T item)
 		{
-			lock(ListLockObject)
+			try
 			{
-				List.Insert(index, item);
-			}
+				// Prevent other threads from writing.
+				LockSlim.EnterUpgradeableReadLock();
 
-			NotifyItemAdded(item, index);
+				try
+				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
+					List.Insert(index, item);
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
+				}
+
+				NotifyItemAdded(item, index);
+			}
+			finally
+			{ 
+				// Allow other threads to read and write.
+				LockSlim.ExitUpgradeableReadLock();
+			}
 		}
 
 		/// <summary>
@@ -77,15 +104,34 @@ namespace Collections
 		{
 			T item;
 
-			lock(ListLockObject)
+			try
 			{
-				// Get a reference to the removed item.
-				item = List[index];
+				// Prevent other threads from writing.
+				LockSlim.EnterUpgradeableReadLock();
 
-				List.RemoveAt(index);
+				try
+				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
+					// Get a reference to the removed item.
+					item = List[index];
+
+					List.RemoveAt(index);
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
+				}
+
+				NotifyItemRemoved(item, index);
 			}
-
-			NotifyItemRemoved(item, index);
+			finally
+			{ 
+				// Allow other threads to read and write.
+				LockSlim.ExitUpgradeableReadLock();
+			}
 		}
 
 		/// <summary>
@@ -98,23 +144,50 @@ namespace Collections
 		{
 			get
 			{
-				lock(ListLockObject)
+				try
 				{
-					return List[index];
+					// Prevent other threads from writing, while reading the list.
+					LockSlim.EnterReadLock();
+
+						return List[index];
+				}
+				finally
+				{ 
+					// Allow other threads to write.
+					LockSlim.ExitReadLock();
 				}
 			}
 			set
 			{
-				T previousValue;
-
-				lock(ListLockObject)
+				try
 				{
-					previousValue = List[index];
+					// Prevent other threads from writing.
+					LockSlim.EnterUpgradeableReadLock();
 
-					List[index] = value;
+					T previousValue;
+
+					try
+					{
+						// Prevent other threads from reading or writing, while the list is being modified.
+						LockSlim.EnterWriteLock();
+
+						previousValue = List[index];
+
+						List[index] = value;
+					}
+					finally
+					{ 
+						// Allow other threads to read, but not write.
+						LockSlim.ExitWriteLock();
+					}
+
+					NotifyItemReplaced(value, previousValue, index);
 				}
-
-				NotifyItemReplaced(value, previousValue, index);
+				finally
+				{ 
+					// Allow other threads to read and write.
+					LockSlim.ExitUpgradeableReadLock();
+				}
 			}
 		}
 		#endregion
@@ -132,15 +205,34 @@ namespace Collections
 		{
 			int result;
 
-			lock(ListLockObject)
+			try
 			{
-				result = ((IList) List).Add(value);
+				// Prevent other threads from writing.
+				LockSlim.EnterUpgradeableReadLock();
+
+				try
+				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
+					result = ((IList) List).Add(value);
+				}
+				finally
+				{ 
+					// Allow other threads to read and write.
+					LockSlim.ExitWriteLock();
+				}
+
+				if(result >= 0)
+					NotifyItemAdded((T) value, result);
+
+				return result;
 			}
-
-			if(result >= 0)
-				NotifyItemAdded((T) value, result);
-
-			return result;
+			finally
+			{ 
+				// Allow other threads to read and write.
+				LockSlim.ExitUpgradeableReadLock();
+			}
 		}
 
 		/// <summary>
@@ -152,9 +244,17 @@ namespace Collections
 		/// </returns>
 		public virtual bool Contains(object value)
 		{
-			lock(ListLockObject)
+			try
 			{
+				// Prevent other threads from writing, while reading the list.
+				LockSlim.EnterReadLock();
+
 				return ((IList) List).Contains(value);
+			}
+			finally
+			{ 
+				// Allow other threads to write.
+				LockSlim.ExitReadLock();
 			}
 		}
 
@@ -165,9 +265,17 @@ namespace Collections
 		/// <returns>The index of value if found in the list; otherwise, -1.</returns>
 		public virtual int IndexOf(object value)
 		{
-			lock(ListLockObject)
+			try
 			{
+				// Prevent other threads from writing, while reading the list.
+				LockSlim.EnterReadLock();
+
 				return ((IList) List).IndexOf(value);
+			}
+			finally
+			{ 
+				// Allow other threads to write.
+				LockSlim.ExitReadLock();
 			}
 		}
 
@@ -181,12 +289,31 @@ namespace Collections
 		/// <exception cref="NullReferenceException">The value is null reference in the list.</exception>
 		public virtual void Insert(int index, object value)
 		{
-			lock(ListLockObject)
+			try
 			{
-				((IList) List).Insert(index, value);
-			}
+				// Prevent other threads from writing.
+				LockSlim.EnterUpgradeableReadLock();
 
-			NotifyItemAdded((T) value, index);
+				try
+				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
+					((IList) List).Insert(index, value);
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
+				}
+
+				NotifyItemAdded((T) value, index);
+			}
+			finally
+			{ 
+				// Allow other threads to read and write.
+				LockSlim.ExitUpgradeableReadLock();
+			}
 		}
 
 		/// <summary>
@@ -201,17 +328,36 @@ namespace Collections
 		{
 			int index;
 
-			lock(ListLockObject)
+			try
 			{
-				// Get the index of the item to remove.
-				index = List.IndexOf((T) value);
-				if(index < 0)
-					return;
+				// Prevent other threads from writing.
+				LockSlim.EnterUpgradeableReadLock();
 
-				((IList) List).RemoveAt(index);
+				try
+				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
+					// Get the index of the item to remove.
+					index = List.IndexOf((T) value);
+					if(index < 0)
+						return;
+
+					((IList) List).RemoveAt(index);
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
+				}
+
+				NotifyItemRemoved((T) value, index);
 			}
-
-			NotifyItemRemoved((T) value, index);
+			finally
+			{ 
+				// Allow other threads to read and write.
+				LockSlim.ExitUpgradeableReadLock();
+			}
 		}
 
 		/// <summary>
@@ -221,9 +367,17 @@ namespace Collections
 		{
 			get
 			{
-				lock(ListLockObject)
+				try
 				{
+					// Prevent other threads from writing, while reading the list.
+					LockSlim.EnterReadLock();
+
 					return ((IList) List).IsFixedSize;
+				}
+				finally
+				{ 
+					// Allow other threads to write.
+					LockSlim.ExitReadLock();
 				}
 			}
 		}
@@ -238,11 +392,33 @@ namespace Collections
 		{
 			get
 			{
-				return this[index];
+				try
+				{
+					// Prevent other threads from writing, while reading the list.
+					LockSlim.EnterReadLock();
+					
+					return this[index];
+				}
+				finally
+				{ 
+					// Allow other threads to write.
+					LockSlim.ExitReadLock();
+				}
 			}
 			set
 			{
-				this[index] = (T) value;
+				try
+				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
+					this[index] = (T) value;
+				}
+				finally
+				{ 
+					// Allow other threads to read and write.
+					LockSlim.ExitWriteLock();
+				}
 			}
 		}
 		#endregion
@@ -262,15 +438,34 @@ namespace Collections
 		{
 			T item;
 
-			lock(ListLockObject)
+			try
 			{
-				item = this[oldIndex];
+				// Prevent other threads from writing.
+				LockSlim.EnterUpgradeableReadLock();
 
-				List.RemoveAt(oldIndex);
-				List.Insert(newIndex, item);
+				try
+				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
+					item = this[oldIndex];
+
+					List.RemoveAt(oldIndex);
+					List.Insert(newIndex, item);
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
+				}
+
+				NotifyItemMoved(item, oldIndex, newIndex);
 			}
-
-			NotifyItemMoved(item, oldIndex, newIndex);
+			finally
+			{ 
+				// Allow other threads to read and write.
+				LockSlim.ExitUpgradeableReadLock();
+			}
 		}
 		#endregion
 
@@ -285,7 +480,18 @@ namespace Collections
 		{
 			Action notifyDelegate = () =>
 			{
-				NotifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, newItem, oldItem, index));
+				try
+				{
+					// Prevent other threads from writing, while reading the list.
+					LockSlim.EnterReadLock();
+
+					NotifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, newItem, oldItem, index));
+				}
+				finally
+				{ 
+					// Allow other threads to write.
+					LockSlim.ExitReadLock();
+				}
 			};
 
 			NotifyCollectionChanged(notifyDelegate);
@@ -301,7 +507,18 @@ namespace Collections
 		{
 			Action notifyDelegate = () =>
 			{
-				NotifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, newIndex, oldIndex));
+				try
+				{
+					// Prevent other threads from writing, while reading the list.
+					LockSlim.EnterReadLock();
+
+					NotifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, newIndex, oldIndex));
+				}
+				finally
+				{ 
+					// Allow other threads to write.
+					LockSlim.ExitReadLock();
+				}
 			};
 
 			NotifyCollectionChanged(notifyDelegate);
@@ -317,7 +534,18 @@ namespace Collections
 		{
 			Action notifyDelegate = () =>
 			{
-				NotifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, items, newIndex, oldIndex));
+				try
+				{
+					// Prevent other threads from writing, while reading the list.
+					LockSlim.EnterReadLock();
+
+					NotifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, items, newIndex, oldIndex));
+				}
+				finally
+				{ 
+					// Allow other threads to write.
+					LockSlim.ExitReadLock();
+				}
 			};
 
 			NotifyCollectionChanged(notifyDelegate);

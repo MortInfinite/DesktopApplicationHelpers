@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using Collections;
 
 namespace GridViewTest
 {
 	/// <summary>
-	/// Adds a bunch of values to an observable collection, using two asynchronous tasks.
+	/// Adds and removes a bunch of values to an observable collection, using asynchronous tasks.
 	/// </summary>
 	public partial class ConcurrentObservableCollectionWindow :Window
 	{
@@ -14,9 +15,12 @@ namespace GridViewTest
 		{
 			InitializeComponent();
 
-			const int maxValue = 1000;
+			const int maxValue = 10000;
 
 			ConcurrentObservableCollection<int> collection = new ConcurrentObservableCollection<int>(true);
+
+			// Inform WPF that the collection is multi threaded.
+			BindingOperations.EnableCollectionSynchronization(collection, collection.SyncRoot);
 
 			Task.Run(async ()=>
 			{
@@ -44,6 +48,17 @@ namespace GridViewTest
 				for(int count=0; count<maxValue; count+=5)
 				{
 					collection.Add(count);
+
+					await Task.Delay(10);
+				}
+			});
+
+			Task.Run(async ()=>
+			{
+				for(int count=0; count<maxValue; count+=5)
+				{
+					if(collection.Count % 5 == 0)
+						collection.Clear();
 
 					await Task.Delay(10);
 				}

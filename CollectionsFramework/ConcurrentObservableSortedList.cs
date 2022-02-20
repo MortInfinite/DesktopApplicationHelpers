@@ -211,12 +211,20 @@ namespace Collections
 				if(value == null)
 					throw new ArgumentNullException(nameof(Compare));
 
-				lock(ListLockObject)
+				try
 				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
 					m_compare = value;
 
 					// Refresh the list of sorted items, now that the sort implementation has changed.
 					Refresh();
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
 				}
 			}
 		}
@@ -238,29 +246,39 @@ namespace Collections
 				if(value == null)
 					throw new ArgumentNullException(nameof(Source));
 
-				lock(ListLockObject)
-				lock(ObservedElementsLockObject)
+				try
 				{
-					m_source = value;
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
 
-					foreach(T oldItem in ObservedElements)
+					lock(ObservedElementsLockObject)
 					{
-						// Stop listening to the element's properties changing.
-						INotifyPropertyChanged notifyPropertyChanged = oldItem as INotifyPropertyChanged;
-						if(notifyPropertyChanged != null)
-							notifyPropertyChanged.PropertyChanged -= Element_PropertyChanged;
+						m_source = value;
+
+						foreach(T oldItem in ObservedElements)
+						{
+							// Stop listening to the element's properties changing.
+							INotifyPropertyChanged notifyPropertyChanged = oldItem as INotifyPropertyChanged;
+							if(notifyPropertyChanged != null)
+								notifyPropertyChanged.PropertyChanged -= Element_PropertyChanged;
+						}
+
+						// Clear the list of observed elements.
+						ObservedElements.Clear();
+
+						// Start listening to the element's properties changing 
+						// (Regardless of whether it is included in the sorted list).
+						foreach(T item in value)
+							ObserveElement(item);
+
+						// Refresh the list of sorted items, now that the source collection has changed.
+						Refresh();
 					}
-
-					// Clear the list of observed elements.
-					ObservedElements.Clear();
-
-					// Start listening to the element's properties changing 
-					// (Regardless of whether it is included in the sorted list).
-					foreach(T item in value)
-						ObserveElement(item);
-
-					// Refresh the list of sorted items, now that the source collection has changed.
-					Refresh();
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
 				}
 			}
 		}
@@ -291,8 +309,11 @@ namespace Collections
 		/// <param name="e">Information about the event.</param>
 		protected virtual void Source_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			lock(ListLockObject)
+			try
 			{
+				// Prevent other threads from reading or writing, while the list is being modified.
+				LockSlim.EnterWriteLock();
+
 				switch(e.Action)
 				{
 					case NotifyCollectionChangedAction.Add:
@@ -375,6 +396,11 @@ namespace Collections
 					break;
 				}
 			}
+			finally
+			{ 
+				// Allow other threads to read, but not write.
+				LockSlim.ExitWriteLock();
+			}
 		}
 
 		/// <summary>
@@ -396,30 +422,40 @@ namespace Collections
 		/// </summary>
 		public virtual void Refresh()
 		{
-			lock(ListLockObject)
+			try
 			{
-				// Clear the list of sorted elements.
-				ProtectedClear();
+				// Prevent other threads from writing.
+				LockSlim.EnterUpgradeableReadLock();
 
-				if(Source == null || Compare == null)
-					return;
-
-				foreach(T newItem in Source)
-					List.Add(newItem);
-
-				List.MergeSort(0, List.Count-1, Compare);
-
-				/*
-				foreach(T newItem in Source)
+				try
 				{
-					// Determine where in the list to insert the new item.
-					int insertIndex = GetSortedIndex(newItem);
-					ProtectedInsert(insertIndex, newItem);
-				}
-				*/
-			}
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
 
-			NotifyItemsAdded(this, 0);
+					// Clear the list of sorted elements.
+					ProtectedClear();
+
+					if(Source == null || Compare == null)
+						return;
+
+					foreach(T newItem in Source)
+						List.Add(newItem);
+
+					List.MergeSort(0, List.Count-1, Compare);
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
+				}
+
+				NotifyItemsAdded(this, 0);
+			}
+			finally
+			{ 
+				// Allow other threads to read and write.
+				LockSlim.ExitUpgradeableReadLock();
+			}
 		}
 
 		/// <summary>
@@ -461,12 +497,31 @@ namespace Collections
 		/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 		protected virtual void ProtectedAdd(T item)
 		{
-			lock(ListLockObject)
+			try
 			{
-				List.Add(item);
-			}
+				// Prevent other threads from writing.
+				LockSlim.EnterUpgradeableReadLock();
 
-			NotifyItemAdded(item, List.Count-1);
+				try
+				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
+					List.Add(item);
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
+				}
+
+				NotifyItemAdded(item, List.Count-1);
+			}
+			finally
+			{ 
+				// Allow other threads to read and write.
+				LockSlim.ExitUpgradeableReadLock();
+			}
 		}
 
 		/// <summary>
@@ -475,12 +530,31 @@ namespace Collections
 		/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 		protected virtual void ProtectedClear()
 		{
-			lock(ListLockObject)
+			try
 			{
-				List.Clear();
-			}
+				// Prevent other threads from writing.
+				LockSlim.EnterUpgradeableReadLock();
 
-			NotifyClear();
+				try
+				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
+					List.Clear();
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
+				}
+
+				NotifyClear();
+			}
+			finally
+			{ 
+				// Allow other threads to read and write.
+				LockSlim.ExitUpgradeableReadLock();
+			}
 		}
 
 		/// <summary>
@@ -495,17 +569,36 @@ namespace Collections
 		{
 			int index;
 
-			lock(ListLockObject)
+			try
 			{
-				// Get the index of the item to remove.
-				index = List.IndexOf(item);
-				if(index < 0)
-					return false;
+				// Prevent other threads from writing.
+				LockSlim.EnterUpgradeableReadLock();
 
-				List.RemoveAt(index);
+				try
+				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
+					// Get the index of the item to remove.
+					index = List.IndexOf(item);
+					if(index < 0)
+						return false;
+
+					List.RemoveAt(index);
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
+				}
+
+				NotifyItemRemoved(item, index);
 			}
-
-			NotifyItemRemoved(item, index);
+			finally
+			{ 
+				// Allow other threads to read and write.
+				LockSlim.ExitUpgradeableReadLock();
+			}
 
 			return true;
 		}
@@ -518,12 +611,31 @@ namespace Collections
 		/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 		protected virtual void ProtectedInsert(int index, T item)
 		{
-			lock(ListLockObject)
+			try
 			{
-				List.Insert(index, item);
-			}
+				// Prevent other threads from writing.
+				LockSlim.EnterUpgradeableReadLock();
 
-			NotifyItemAdded(item, index);
+				try
+				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
+					List.Insert(index, item);
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
+				}
+
+				NotifyItemAdded(item, index);
+			}
+			finally
+			{ 
+				// Allow other threads to read and write.
+				LockSlim.ExitUpgradeableReadLock();
+			}
 		}
 
 		/// <summary>
@@ -534,16 +646,35 @@ namespace Collections
 		/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 		protected virtual void ProtectedMove(T item, int oldIndex, int newIndex)
 		{
-			lock(ListLockObject)
+			try
 			{
-				// Remove the item from its current position.
-				List.RemoveAt(oldIndex);
+				// Prevent other threads from writing.
+				LockSlim.EnterUpgradeableReadLock();
 
-				// Insert the item at its new position.
-				List.Insert(newIndex, item);
+				try
+				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
+					// Remove the item from its current position.
+					List.RemoveAt(oldIndex);
+
+					// Insert the item at its new position.
+					List.Insert(newIndex, item);
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
+				}
+
+				NotifyItemMoved(item, oldIndex, newIndex);
 			}
-
-			NotifyItemMoved(item, oldIndex, newIndex);
+			finally
+			{ 
+				// Allow other threads to read and write.
+				LockSlim.ExitUpgradeableReadLock();
+			}
 		}
 
 		/// <summary>
@@ -556,30 +687,49 @@ namespace Collections
 			int oldIndex;
 			int newIndex;
 
-			lock(ListLockObject)
+			try
 			{
-				// Determine if the current index of the changed element.
-				oldIndex = List.IndexOf(item);
-				if(oldIndex < 0)
-					return;
+				// Prevent other threads from writing.
+				LockSlim.EnterUpgradeableReadLock();
 
-				// Determine if the item needs to be sorted.
-				if(!NeedsSort(oldIndex))
-					return;
+				try
+				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
 
-				// Determine if the element should exist in the list of sorted elements.
-				newIndex  = GetSortedIndex(item);
-				if(newIndex ==  oldIndex)
-					return;
+					// Determine if the current index of the changed element.
+					oldIndex = List.IndexOf(item);
+					if(oldIndex < 0)
+						return;
 
-				// Remove the item from its current position.
-				List.RemoveAt(oldIndex);
+					// Determine if the item needs to be sorted.
+					if(!NeedsSort(oldIndex))
+						return;
 
-				// Insert the item at its new position.
-				List.Insert(newIndex, item);
+					// Determine if the element should exist in the list of sorted elements.
+					newIndex  = GetSortedIndex(item);
+					if(newIndex ==  oldIndex)
+						return;
+
+					// Remove the item from its current position.
+					List.RemoveAt(oldIndex);
+
+					// Insert the item at its new position.
+					List.Insert(newIndex, item);
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
+				}
+
+				NotifyItemMoved(item, oldIndex, newIndex);
 			}
-
-			NotifyItemMoved(item, oldIndex, newIndex);
+			finally
+			{ 
+				// Allow other threads to read and write.
+				LockSlim.ExitUpgradeableReadLock();
+			}
 		}
 
 		/// <summary>
@@ -589,8 +739,11 @@ namespace Collections
 		/// <returns>Returns true if the item at the specified index needs to be sorted.</returns>
 		protected virtual bool NeedsSort(int index)
 		{
-			lock(ListLockObject)
+			try
 			{
+				// Prevent other threads from writing, while reading the list.
+				LockSlim.EnterReadLock();
+
 				T item = List[index];
 			
 				// If the item has a less value than the previous index.
@@ -600,6 +753,11 @@ namespace Collections
 				// If the item has a greater value than the next index.
 				if(index+1 < List.Count && Compare(item, List[index+1]) > 0)
 					return true;
+			}
+			finally
+			{ 
+				// Allow other threads to write.
+				LockSlim.ExitReadLock();
 			}
 
 			return false;
@@ -612,10 +770,18 @@ namespace Collections
 		/// <returns>Index at which the item should be inserted.</returns>
 		protected virtual int GetSortedIndex(T item)
 		{
-			lock(ListLockObject)
+			try
 			{
+				// Prevent other threads from writing, while reading the list.
+				LockSlim.EnterReadLock();
+
 				int index = GetSortedInsertIndex(item, 0, List.Count-1);
 				return index;
+			}
+			finally
+			{ 
+				// Allow other threads to write.
+				LockSlim.ExitReadLock();
 			}
 		}
 
@@ -627,43 +793,53 @@ namespace Collections
 		/// <param name="startIndex">Index of first element, in the list, to search.</param>
 		/// <param name="endIndex">Index of last element, in the list, to search.</param>
 		/// <returns>Index of a result that matches the specified value.</returns>
-		/// <remarks>Lock the <see cref="ListLockObject"/> before calling this method.</remarks>
 		protected int GetSortedInsertIndex(T value, int startIndex, int endIndex)
 		{
-			if(List.Count == 0)
-				return 0;
-			if(startIndex > endIndex)
-				return -1;
-
-			int middleIndex = (endIndex-startIndex)/2+startIndex;
-			
-			int compareResult = Compare(value, List[middleIndex]);
-
-			// Value is same value as value at middle index. New item must be inserted after the middle index.
-			if(compareResult == 0)
-				return middleIndex+1;
-
-			// Value is less than value at middle index.
-			if(compareResult < 0)
+			try
 			{
-				// Middle index is at the first item in the list. New item must be inserted before the first item.
-				if(middleIndex == startIndex)
-					return middleIndex;
+				// Prevent other threads from writing, while reading the list.
+				LockSlim.EnterReadLock();
 
-				return GetSortedInsertIndex(value, startIndex, middleIndex-1);
-			}
+				if(List.Count == 0)
+					return 0;
+				if(startIndex > endIndex)
+					return -1;
+
+				int middleIndex = (endIndex-startIndex)/2+startIndex;
 			
-			// Value is greater than value at middle index.
-			if(compareResult > 0)
-			{
-				// Middle index is at the last item in the list. New item must be inserted after the last item.
-				if(middleIndex == endIndex)
+				int compareResult = Compare(value, List[middleIndex]);
+
+				// Value is same value as value at middle index. New item must be inserted after the middle index.
+				if(compareResult == 0)
 					return middleIndex+1;
-				
-				return GetSortedInsertIndex(value, middleIndex+1, endIndex);
-			}
 
-			return -1;
+				// Value is less than value at middle index.
+				if(compareResult < 0)
+				{
+					// Middle index is at the first item in the list. New item must be inserted before the first item.
+					if(middleIndex == startIndex)
+						return middleIndex;
+
+					return GetSortedInsertIndex(value, startIndex, middleIndex-1);
+				}
+			
+				// Value is greater than value at middle index.
+				if(compareResult > 0)
+				{
+					// Middle index is at the last item in the list. New item must be inserted after the last item.
+					if(middleIndex == endIndex)
+						return middleIndex+1;
+				
+					return GetSortedInsertIndex(value, middleIndex+1, endIndex);
+				}
+
+				return -1;
+			}
+			finally
+			{ 
+				// Allow other threads to write.
+				LockSlim.ExitReadLock();
+			}
 		}
 		#endregion
 

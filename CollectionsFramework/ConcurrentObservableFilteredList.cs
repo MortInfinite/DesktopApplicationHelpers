@@ -200,12 +200,20 @@ namespace Collections
 				if(value == null)
 					throw new ArgumentNullException(nameof(Filter));
 
-				lock(ListLockObject)
+				try
 				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
 					m_filter = value;
 
 					// Refresh the list of filtered items, now that the filter has changed.
 					Refresh();
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
 				}
 			}
 		}
@@ -227,29 +235,39 @@ namespace Collections
 				if(value == null)
 					throw new ArgumentNullException(nameof(Source));
 
-				lock(ListLockObject)
-				lock(ObservedElementsLockObject)
+				try
 				{
-					m_source = value;
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
 
-					foreach(T oldItem in ObservedElements)
+					lock(ObservedElementsLockObject)
 					{
-						// Stop listening to the element's properties changing.
-						INotifyPropertyChanged notifyPropertyChanged = oldItem as INotifyPropertyChanged;
-						if(notifyPropertyChanged != null)
-							notifyPropertyChanged.PropertyChanged -= Element_PropertyChanged;
+						m_source = value;
+
+						foreach(T oldItem in ObservedElements)
+						{
+							// Stop listening to the element's properties changing.
+							INotifyPropertyChanged notifyPropertyChanged = oldItem as INotifyPropertyChanged;
+							if(notifyPropertyChanged != null)
+								notifyPropertyChanged.PropertyChanged -= Element_PropertyChanged;
+						}
+
+						// Clear the list of observed elements.
+						ObservedElements.Clear();
+
+						// Start listening to the element's properties changing 
+						// (Regardless of whether it is included in the filtered list).
+						foreach(T item in value)
+							ObserveElement(item);
+
+						// Refresh the list of filtered items, now that the source collection has changed.
+						Refresh();
 					}
-
-					// Clear the list of observed elements.
-					ObservedElements.Clear();
-
-					// Start listening to the element's properties changing 
-					// (Regardless of whether it is included in the filtered list).
-					foreach(T item in value)
-						ObserveElement(item);
-
-					// Refresh the list of filtered items, now that the source collection has changed.
-					Refresh();
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
 				}
 			}
 		}
@@ -454,12 +472,31 @@ namespace Collections
 		/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 		protected virtual void ProtectedAdd(T item)
 		{
-			lock(ListLockObject)
+			try
 			{
-				List.Add(item);
-			}
+				// Prevent other threads from writing.
+				LockSlim.EnterUpgradeableReadLock();
 
-			NotifyItemAdded(item, List.Count-1);
+				try
+				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
+					List.Add(item);
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
+				}
+
+				NotifyItemAdded(item, List.Count-1);
+			}
+			finally
+			{ 
+				// Allow other threads to read and write.
+				LockSlim.ExitUpgradeableReadLock();
+			}
 		}
 
 		/// <summary>
@@ -468,12 +505,31 @@ namespace Collections
 		/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 		protected virtual void ProtectedClear()
 		{
-			lock(ListLockObject)
+			try
 			{
-				List.Clear();
-			}
+				// Prevent other threads from writing.
+				LockSlim.EnterUpgradeableReadLock();
 
-			NotifyClear();
+				try
+				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
+					List.Clear();
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
+				}
+
+				NotifyClear();
+			}
+			finally
+			{ 
+				// Allow other threads to read and write.
+				LockSlim.ExitUpgradeableReadLock();
+			}
 		}
 
 		/// <summary>
@@ -488,17 +544,36 @@ namespace Collections
 		{
 			int index;
 
-			lock(ListLockObject)
+			try
 			{
-				// Get the index of the item to remove.
-				index = List.IndexOf(item);
-				if(index < 0)
-					return false;
+				// Prevent other threads from writing.
+				LockSlim.EnterUpgradeableReadLock();
 
-				List.RemoveAt(index);
+				try
+				{
+					// Prevent other threads from reading or writing, while the list is being modified.
+					LockSlim.EnterWriteLock();
+
+					// Get the index of the item to remove.
+					index = List.IndexOf(item);
+					if(index < 0)
+						return false;
+
+					List.RemoveAt(index);
+				}
+				finally
+				{ 
+					// Allow other threads to read, but not write.
+					LockSlim.ExitWriteLock();
+				}
+
+				NotifyItemRemoved(item, index);
 			}
-
-			NotifyItemRemoved(item, index);
+			finally
+			{ 
+				// Allow other threads to read and write.
+				LockSlim.ExitUpgradeableReadLock();
+			}
 
 			return true;
 		}

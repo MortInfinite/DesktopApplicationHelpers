@@ -10,6 +10,7 @@
   <ItemGroup>
     <Compile Include="..\GridViewTestFramework\App.xaml.cs" Link="App.xaml.cs" />
     <Compile Include="..\GridViewTestFramework\ConcurrentObservableCollectionWindow.xaml.cs" Link="ConcurrentObservableCollectionWindow.xaml.cs" />
+    <Compile Include="..\GridViewTestFramework\ConcurrentObservableListWindow.xaml.cs" Link="ConcurrentObservableListWindow.xaml.cs" />
     <Compile Include="..\GridViewTestFramework\DualListWindow.xaml.cs" Link="DualListWindow.xaml.cs" />
     <Compile Include="..\GridViewTestFramework\FilteredListWindow.xaml.cs" Link="FilteredListWindow.xaml.cs" />
     <Compile Include="..\GridViewTestFramework\MvvmViewModel.cs" Link="MvvmViewModel.cs" />
@@ -22,6 +23,9 @@
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
     <Page Include="..\GridViewTestFramework\ConcurrentObservableCollectionWindow.xaml" Link="ConcurrentObservableCollectionWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="..\GridViewTestFramework\ConcurrentObservableListWindow.xaml" Link="ConcurrentObservableListWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="..\GridViewTestFramework\DualListWindow.xaml" Link="DualListWindow.xaml">

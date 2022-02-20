@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 
 namespace GridViewTest
 {
@@ -23,17 +17,17 @@ namespace GridViewTest
 			ConcurrentObservableCollectionWindow concurrentObservableCollectionWindow = new ConcurrentObservableCollectionWindow();
 			concurrentObservableCollectionWindow.Show();
 
+			ConcurrentObservableListWindow concurrentObservableListWindow = new ConcurrentObservableListWindow();
+			concurrentObservableListWindow.Show();
+
 			FilteredListWindow filteredListWindow = new FilteredListWindow();
 			filteredListWindow.Show();
 
 			InvokeValueMarkupWindow invokeValueMarkupWindow = new InvokeValueMarkupWindow();
 			invokeValueMarkupWindow.Show();
 
-			MvvmWindow mvvmWindow	= new MvvmWindow()
-			{
-				DataContext = new MvvmViewModel()
-			};
-
+			MvvmWindow mvvmWindow   = new MvvmWindow();
+			mvvmWindow.DataContext	= new MvvmViewModel();
 			mvvmWindow.Show();
 		}
 	}

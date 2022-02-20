@@ -52,5 +52,36 @@ namespace CollectionTest
 			// Check that we received an event for each value that was moved.
 			Assert.IsTrue(notificationValues.Count == iterations*2);
 		}
+
+		/// <summary>
+		/// Test that the event subscriber prevents other threads from accessing the contents of the list, before the event subscription has returned.
+		/// 
+		/// This is necessary to allow subscribers to examine an item added, before another thread has a chance to remove it again.
+		/// </summary>
+		[TestMethod]
+		public void AddAndClearDuringNotify()
+		{
+			const int						iterations			= 10000;
+			ConcurrentObservableList<int>	list				= new ConcurrentObservableList<int>(true, false);
+
+			// Slow event subscriber.
+			list.CollectionChanged += (object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) =>
+			{
+				if(e.Action == NotifyCollectionChangedAction.Add)
+				{ 
+					// This will fail if the parallel threads are allowed to clear the list, before the event handler returns.
+					int addedItem = list[e.NewStartingIndex];
+
+					Assert.IsTrue(list.Contains(e.NewItems[0]), $"The added item was removed from the list before the event subscriber had a chance to examine it.");
+				}
+			};
+
+			// Add a bunch of values and clear them again, before the event subscriber has a chance to retrieve the value.
+			Parallel.For(0, iterations-1, count => 
+			{
+				list.Add(count);
+				list.Clear();
+			});
+		}
 	}
 }

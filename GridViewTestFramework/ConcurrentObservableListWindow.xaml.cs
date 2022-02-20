@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
@@ -8,18 +8,19 @@ using Collections;
 namespace GridViewTest
 {
 	/// <summary>
-	/// Demonstrates a filtered list, which is based on a collection, in which items are being added by three asynchronous tasks.
+	/// Adds and removes a bunch of values to an observable list, using asynchronous tasks.
 	/// </summary>
-	public partial class FilteredListWindow :Window
+	public partial class ConcurrentObservableListWindow :Window
 	{
-		public FilteredListWindow()
+		object lockObject = new object();
+		public ConcurrentObservableListWindow()
 		{
 			InitializeComponent();
 
 			const int maxValue = 10000;
 
-			ConcurrentObservableCollection<int>		collection		= new ConcurrentObservableCollection<int>(true);
-
+			ConcurrentObservableList<int> collection = new ConcurrentObservableList<int>(true);
+			
 			// Inform WPF that the collection is multi threaded.
 			BindingOperations.EnableCollectionSynchronization(collection, collection.SyncRoot);
 
@@ -32,7 +33,7 @@ namespace GridViewTest
 					await Task.Delay(10);
 				}
 			});
-
+			
 			Task.Run(async ()=>
 			{
 				for(int count=0; count<maxValue; count+=3)
@@ -43,7 +44,6 @@ namespace GridViewTest
 				}
 			});
 
-
 			Task.Run(async ()=>
 			{
 				for(int count=0; count<maxValue; count+=5)
@@ -53,7 +53,7 @@ namespace GridViewTest
 					await Task.Delay(10);
 				}
 			});
-
+			
 			Task.Run(async ()=>
 			{
 				for(int count=0; count<maxValue; count+=5)
@@ -65,21 +65,7 @@ namespace GridViewTest
 				}
 			});
 
-			// Wait for a few items to be added, such that the collection isn't empty to begin with.
-			Thread.Sleep(50);
-
-			ConcurrentObservableFilteredList<int>	filteredList	= new ConcurrentObservableFilteredList<int>(collection, Filter);
-			DataContext = filteredList;
-		}
-
-		/// <summary>
-		/// Filter out odd elements.
-		/// </summary>
-		/// <param name="element">Element to evaluate.</param>
-		/// <returns>Returns true for even elements.</returns>
-		private bool Filter(int element)
-		{
-			return element % 2 == 0;
+			DataContext = collection;
 		}
 
 		public ICollection<int> Data
@@ -94,6 +80,6 @@ namespace GridViewTest
 			}
 		}
 
-		public static readonly DependencyProperty DataProperty = DependencyProperty.Register("Data", typeof(ICollection<int>), typeof(FilteredListWindow), new PropertyMetadata(null));
+		public static readonly DependencyProperty DataProperty = DependencyProperty.Register("Data", typeof(ICollection<int>), typeof(ConcurrentObservableListWindow), new PropertyMetadata(null));
 	}
 }
